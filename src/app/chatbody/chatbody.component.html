@@ -21,7 +21,7 @@
         class="flex justify-start mb-4"
       >
         <div class="bg-gray-200 rounded-lg py-2 px-4 max-w-[70%]">
-          {{ partialText }}
+          <div class="animated-text">{{ partialText }}</div>
         </div>
       </div>
     </div>
@@ -36,10 +36,12 @@
         placeholder="Type your message..."
         class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         (keyup.enter)="sendMessage()"
+        [disabled]="isLoading"
       />
       <button
-        class="bg-blue-500 text-white px-4 py-2 rounded-lg"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-50"
         (click)="sendMessage()"
+        [disabled]="isLoading"
       >
         Send
       </button>

@@ -28,7 +28,10 @@ export class ChatbodyComponent {
           }
           this.partialText = ''; // Resetta il messaggio parziale
           this.messages.push(data); // Aggiunge il messaggio alla lista
+        } else if (data.status == 'completed') {
+          this.isLoading = false; // Nasconde il loader
         } else {
+          console.log('Messaggio in streaming:', data.text); // Log per debug
           this.partialText += data.text; // Mostra il messaggio parziale
         }
       },
