@@ -6,7 +6,7 @@ import { webSocket } from 'rxjs/webSocket';
   providedIn: 'root',
 })
 export class ChatService {
-  private socket$ = webSocket('ws://localhost:3000'); // Sostituisci con l'URL del tuo backend
+  private socket$ = webSocket('ws://localhost:5000/ws'); // Sostituisci con l'URL del tuo backend
 
   sendMessage(message: string): void {
     const msg = {

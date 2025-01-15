@@ -22,18 +22,7 @@ export class ChatbodyComponent {
     this.messageSubscription = this.chatService.onMessage().subscribe(
       (data) => {
         console.log('Messaggio ricevuto:', data); // Log per debug
-        if (data.role == 'user') {
-          if (this.partialText.length > 0) {
-            this.messages.push({ text: this.partialText, role: 'ia' }); // Aggiunge il messaggio parziale alla lista
-          }
-          this.partialText = ''; // Resetta il messaggio parziale
-          this.messages.push(data); // Aggiunge il messaggio alla lista
-        } else if (data.status == 'completed') {
-          this.isLoading = false; // Nasconde il loader
-        } else {
-          console.log('Messaggio in streaming:', data.text); // Log per debug
-          this.partialText += data.text; // Mostra il messaggio parziale
-        }
+        this.messages.push(data); // Aggiungi il messaggio all'array
       },
       (error) => {
         console.error('Errore nella ricezione del messaggio:', error);
@@ -43,7 +32,6 @@ export class ChatbodyComponent {
 
   sendMessage(): void {
     if (this.newMessage.trim()) {
-      this.isLoading = true; // Mostra il loader
       this.chatService.sendMessage(this.newMessage); // Invia il messaggio al backend
       this.newMessage = ''; // Resetta l'input
     }
