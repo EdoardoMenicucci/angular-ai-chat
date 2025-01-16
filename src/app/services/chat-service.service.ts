@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { tap } from 'rxjs/operators';
+import { LoginCredentials } from '../interfaces/auth.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -10,11 +11,20 @@ import { tap } from 'rxjs/operators';
 export class ChatService {
   private socket$?: WebSocketSubject<any>;
   private token: string = '';
+  private readonly TOKEN_KEY = 'chat_token';
+  private authError = new Subject<boolean>();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    const savedToken = localStorage.getItem(this.TOKEN_KEY);
+    if (savedToken) {
+      this.setToken(savedToken);
+    }
+  }
 
   setToken(token: string) {
     this.token = token;
+    // Save token to localStorage
+    localStorage.setItem(this.TOKEN_KEY, token);
     this.initializeWebSocket();
   }
 
@@ -28,15 +38,20 @@ export class ChatService {
       deserializer: (msg) => JSON.parse(msg.data),
       serializer: (msg) => JSON.stringify(msg),
     });
+
+    this.socket$.subscribe({
+      error: (error) => {
+        if (error.status === 401) {
+          // Token non valido/scaduto
+          this.logout();
+          // Emetti un evento per notificare i componenti
+          this.authError.next(true);
+        }
+      },
+    });
   }
 
-  login(): Observable<any> {
-    // Test credentials for development
-    const credentials = {
-      username: 'test',
-      password: 'password',
-    };
-
+  login(credentials: LoginCredentials): Observable<any> {
     return this.http.post('http://localhost:5000/auth/login', credentials).pipe(
       tap((response: any) => {
         if (response.token) {
@@ -44,6 +59,22 @@ export class ChatService {
         }
       })
     );
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    this.token = '';
+    if (this.socket$) {
+      this.socket$.complete();
+    }
+  }
+
+  getAuthErrors(): Observable<boolean> {
+    return this.authError.asObservable();
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.token;
   }
 
   sendMessage(message: string): void {

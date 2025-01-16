@@ -12,6 +12,13 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
   newMessage: string = '';
   partialText: string = '';
   isLoading: boolean = false;
+  isAuthenticated: boolean = false;
+  private authErrorSubscription!: Subscription;
+
+  loginForm = {
+    username: '',
+    password: '',
+  };
 
   private messageSubscription!: Subscription; // Gestisce la sottoscrizione
 
@@ -30,15 +37,21 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Sottoscrivi ai messaggi ricevuti dal backend
-    this.chatService.login().subscribe(
-      () => {
-        this.initializeConnection();
-      },
-      (error) => {
-        console.error('Login failed:', error);
-      }
-    );
+    // Controlla autenticazione iniziale
+    if (this.chatService.isAuthenticated()) {
+      this.isAuthenticated = true;
+      this.initializeConnection();
+    }
+
+    // Sottoscrizione agli errori di autenticazione
+    this.authErrorSubscription = this.chatService
+      .getAuthErrors()
+      .subscribe(() => {
+        this.isAuthenticated = false;
+        this.messages = [];
+        // Opzionale: mostra messaggio all'utente
+        console.log('Sessione scaduta, effettua nuovamente il login');
+      });
   }
 
   sendMessage(): void {
@@ -46,6 +59,18 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
       this.chatService.sendMessage(this.newMessage); // Invia il messaggio al backend
       this.newMessage = ''; // Resetta l'input
     }
+  }
+
+  handleLogin(): void {
+    this.chatService.login(this.loginForm).subscribe(
+      () => {
+        this.isAuthenticated = true;
+        this.initializeConnection();
+      },
+      (error) => {
+        console.error('Login failed:', error);
+      }
+    );
   }
 
   resetChat(): void {
@@ -58,11 +83,12 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Chiudi la sottoscrizione memory leaks
-    if (this.messageSubscription) {
+     if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
     }
-    //add timer to close connection
+    if (this.authErrorSubscription) {
+      this.authErrorSubscription.unsubscribe();
+    }
     this.chatService.closeConnection();
-    //this.chatService.closeConnection();
   }
 }
