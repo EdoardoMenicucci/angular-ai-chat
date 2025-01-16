@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './chatbody.component.html',
   styleUrls: ['./chatbody.component.css'],
 })
-export class ChatbodyComponent {
+export class ChatbodyComponent implements OnInit, OnDestroy {
   messages: Array<{ text: string; role: string }> = [];
   newMessage: string = '';
   partialText: string = '';
@@ -17,15 +17,26 @@ export class ChatbodyComponent {
 
   constructor(private chatService: ChatService) {}
 
-  ngOnInit(): void {
-    // Sottoscrivi ai messaggi ricevuti dal backend
+  initializeConnection(): void {
     this.messageSubscription = this.chatService.onMessage().subscribe(
       (data) => {
-        console.log('Messaggio ricevuto:', data); // Log per debug
-        this.messages.push(data); // Aggiungi il messaggio all'array
+        console.log('Messaggio ricevuto:', data);
+        this.messages.push(data);
       },
       (error) => {
         console.error('Errore nella ricezione del messaggio:', error);
+      }
+    );
+  }
+
+  ngOnInit(): void {
+    // Sottoscrivi ai messaggi ricevuti dal backend
+    this.chatService.login().subscribe(
+      () => {
+        this.initializeConnection();
+      },
+      (error) => {
+        console.error('Login failed:', error);
       }
     );
   }
@@ -37,11 +48,21 @@ export class ChatbodyComponent {
     }
   }
 
-  ngOnDestroy(): void {
-    // Chiudi la sottoscrizione per prevenire memory leaks
+  resetChat(): void {
+    this.messages = []; // Svuota l'array dei messaggi
     if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
     }
+    setTimeout(() => this.initializeConnection(), 500); //ristabilisci la connessione
+  }
+
+  ngOnDestroy(): void {
+    // Chiudi la sottoscrizione memory leaks
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+    }
+    //add timer to close connection
     this.chatService.closeConnection();
+    //this.chatService.closeConnection();
   }
 }
