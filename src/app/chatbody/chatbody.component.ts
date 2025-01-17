@@ -75,7 +75,7 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
   }
 
   handleRegister(): void {
-    this.chatService.login(this.loginForm).subscribe(
+    this.chatService.register(this.loginForm).subscribe(
       () => {
         this.isAuthenticated = true;
         this.initializeConnection();
