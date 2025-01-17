@@ -13,6 +13,7 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
   partialText: string = '';
   isLoading: boolean = false;
   isAuthenticated: boolean = false;
+  isRegistering: boolean = false;
   private authErrorSubscription!: Subscription;
 
   loginForm = {
@@ -73,6 +74,18 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
     );
   }
 
+  handleRegister(): void {
+    this.chatService.login(this.loginForm).subscribe(
+      () => {
+        this.isAuthenticated = true;
+        this.initializeConnection();
+      },
+      (error) => {
+        console.error('Login failed:', error);
+      }
+    );
+  }
+
   resetChat(): void {
     this.messages = []; // Svuota l'array dei messaggi
     if (this.messageSubscription) {
@@ -83,7 +96,7 @@ export class ChatbodyComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Chiudi la sottoscrizione memory leaks
-     if (this.messageSubscription) {
+    if (this.messageSubscription) {
       this.messageSubscription.unsubscribe();
     }
     if (this.authErrorSubscription) {

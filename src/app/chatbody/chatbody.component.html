@@ -1,7 +1,7 @@
 <div class="container mx-auto flex flex-col h-[calc(100vh-3rem)]">
-  <!-- Autentication  Form -->
+  <!-- Login  Form -->
   <div *ngIf="!isAuthenticated" class="flex justify-center items-center h-full">
-    <form class="bg-white p-8 rounded-lg shadow-md" (ngSubmit)="handleLogin()">
+    <form *ngIf=" !isRegistering" class="bg-white p-8 rounded-lg shadow-md" (ngSubmit)="handleLogin()">
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
           Username
@@ -35,7 +35,52 @@
       >
         Login
       </button>
+      <!-- non hai un account? -->
+      <div class="text-center mt-4">
+        <button type="button" (click)="isRegistering = true" class="text-blue-500">Non hai un account?</button>
+      </div>
     </form>
+
+        <!-- Register Form -->
+    <form *ngIf="isRegistering" class="bg-white p-8 rounded-lg shadow-md" (ngSubmit)="handleRegister()">
+      <h2 class="text-2xl mb-4 text-center">Register</h2>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="reg-username">
+          Username
+        </label>
+        <input
+          type="text"
+          id="reg-username"
+          [(ngModel)]="loginForm.username"
+          name="username"
+          class="border rounded w-full py-2 px-3"
+          required
+        />
+      </div>
+      <div class="mb-6">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="reg-password">
+          Password
+        </label>
+        <input
+          type="password"
+          id="reg-password"
+          [(ngModel)]="loginForm.password"
+          (keyup.enter)="handleRegister()"
+          name="password"
+          class="border rounded w-full py-2 px-3"
+          required
+        />
+      </div>
+      <button type="submit" class="bg-green-500 text-white font-bold py-2 px-4 rounded w-full mb-4">
+        Register
+      </button>
+      <div class="text-center">
+        <button type="button" (click)="isRegistering = false" class="text-blue-500 hover:underline">
+          Already have an account? Login
+        </button>
+      </div>
+    </form>
+
   </div>
   <!-- Chat Messages Container -->
   <div *ngIf="isAuthenticated" class="flex flex-col h-full overflow-y-auto p-4">

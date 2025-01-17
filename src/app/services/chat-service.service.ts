@@ -41,18 +41,33 @@ export class ChatService {
 
     this.socket$.subscribe({
       error: (error) => {
-        if (error.status === 401) {
-          // Token non valido/scaduto
+        console.log('WebSocket error:', error);
+        // Handle both explicit 401 status and connection errors
+        if (error.status === 401 || error.type === 'error') {
           this.logout();
-          // Emetti un evento per notificare i componenti
           this.authError.next(true);
         }
+      },
+      complete: () => {
+        // Also handle connection closure
+        this.logout();
+        this.authError.next(true);
       },
     });
   }
 
   login(credentials: LoginCredentials): Observable<any> {
     return this.http.post('http://localhost:5000/auth/login', credentials).pipe(
+      tap((response: any) => {
+        if (response.token) {
+          this.setToken(response.token);
+        }
+      })
+    );
+  }
+
+  register(credentials: LoginCredentials): Observable<any> {
+    return this.http.post('http://localhost:5000/auth/register', credentials).pipe(
       tap((response: any) => {
         if (response.token) {
           this.setToken(response.token);
